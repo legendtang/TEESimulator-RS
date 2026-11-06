@@ -543,6 +543,7 @@ object AttestationBuilder {
      *   retrieved.
      */
     @Throws(Throwable::class)
+    @Suppress("DEPRECATION")
     internal fun createApplicationId(uid: Int): DEROctetString {
         val appUid = uid % 100000
         if (appUid == 0 || appUid == 1000) {
@@ -565,17 +566,19 @@ object AttestationBuilder {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     pm.getPackageInfo(
                         packageName,
-                        PackageManager.GET_SIGNING_CERTIFICATES.toLong(),
+                        PackageManager.GET_SIGNATURES.toLong(),
                         userId,
                     )
                 } else {
-                    @Suppress("DEPRECATION")
-                    pm.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES, userId)
+                    pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES, userId)
                 }
 
             packageInfoList.add(packageInfo.packageName to packageInfo.longVersionCode)
 
-            packageInfo.signingInfo?.signingCertificateHistory?.forEach { signature ->
+            // Match KeyAttestationApplicationIdProviderService, including its
+            // compatibility signer after certificate rotation. Adding all past
+            // signers changes the application's attested identity.
+            packageInfo.signatures?.forEach { signature ->
                 signatureDigests.add(Digest(sha256.digest(signature.toByteArray())))
             }
         }

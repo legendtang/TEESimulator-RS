@@ -16,7 +16,13 @@ def main():
     parser.add_argument('--serial', required=True)
     parser.add_argument('--classpath', required=True, help='Already staged device dex/jar paths')
     parser.add_argument('--uid', type=int, action='append', required=True)
+    parser.add_argument('--candidate-class', help='Static factory class from the release R8 mapping')
+    parser.add_argument('--candidate-method', help='Static factory method from the release R8 mapping')
+    parser.add_argument('--octets-field', help='Octet backing field from the release R8 mapping')
     args = parser.parse_args()
+    mapped = [args.candidate_class, args.candidate_method, args.octets_field]
+    if any(mapped) and not all(mapped):
+        parser.error('Provide all three R8 mapping options together')
     adb = ['adb', '-s', args.serial]
     sdk = subprocess.check_output(adb + ['shell', 'getprop', 'ro.build.version.sdk'], text=True).strip()
     if sdk != '33':
@@ -24,9 +30,11 @@ def main():
     for uid in args.uid:
         results = {}
         for mode in ['canonical', 'candidate']:
+            probe_args = [mode, str(uid)]
+            if mode == 'candidate' and all(mapped):
+                probe_args = ['candidate-minified', str(uid), *mapped]
             command = ('CLASSPATH=' + shlex.quote(args.classpath) +
-                       ' app_process /system/bin ApplicationIdConformanceProbe ' +
-                       mode + ' ' + str(uid))
+                       ' app_process /system/bin ApplicationIdConformanceProbe ' + shlex.join(probe_args))
             output = subprocess.check_output(
                 adb + ['shell', 'su 1017 -c ' + shlex.quote(command)],
                 text=True, timeout=30)

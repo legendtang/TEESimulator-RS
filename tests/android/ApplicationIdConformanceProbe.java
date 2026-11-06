@@ -91,11 +91,23 @@ public final class ApplicationIdConformanceProbe {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 2) throw new IllegalArgumentException("canonical|candidate UID");
+        if (args.length < 2) throw new IllegalArgumentException("canonical|candidate|candidate-minified UID");
         int uid = Integer.parseInt(args[1]);
         byte[] value;
         if (args[0].equals("canonical")) value = canonical(uid);
         else if (args[0].equals("candidate")) value = candidate(uid);
+        else if (args[0].equals("candidate-minified") && args.length == 5) {
+            // Names must come from this release's R8 mapping. No service starts.
+            Object result = Class.forName(args[2]).getDeclaredMethod(args[3], int.class).invoke(null, uid);
+            java.lang.reflect.Field field = null;
+            for (Class<?> type = result.getClass(); type != null && field == null; type = type.getSuperclass()) {
+                try { field = type.getDeclaredField(args[4]); }
+                catch (NoSuchFieldException ignored) { }
+            }
+            if (field == null || field.getType() != byte[].class) throw new IllegalStateException("No mapped octet field");
+            field.setAccessible(true);
+            value = (byte[]) field.get(result);
+        }
         else throw new IllegalArgumentException("Unknown mode");
         System.out.println("APPLICATION_ID_DER|" + Base64.getEncoder().encodeToString(value));
     }

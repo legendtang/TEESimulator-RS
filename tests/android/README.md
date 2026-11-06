@@ -22,6 +22,12 @@ inspected Android 13 device, the framework reports one compatibility signer,
 while `signingCertificateHistory` contains two. Including the whole history
 changes the attested application identity.
 
+To test a minified release dex instead, stage that dex and a separate probe jar.
+Append `--candidate-class`, `--candidate-method` and `--octets-field` using the
+factory and octet storage names from that exact release's R8 mapping. The
+factory must be static in this mode. This permits a before/after comparison of
+the actual release artifacts without replacing an installed module.
+
 The expected signature source follows AOSP's
 `frameworks/base/services/core/java/com/android/server/security/KeyAttestationApplicationIdProviderService.java`:
 `GET_SIGNATURES` and `PackageInfo.signatures`. Both the Android 13 release and

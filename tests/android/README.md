@@ -15,6 +15,19 @@ python tests/android/check-application-id.py --serial DEVICE \
   --classpath /data/local/tmp/tee-application-id-test.jar --uid APP_UID
 ```
 
+The Gradle wrapper pins a version compatible with the Android plugin. To build
+the release dex with the inspected pacman SDK/NDK installation, use:
+
+```sh
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk ANDROID_HOME=/opt/android-sdk \
+  ./gradlew -Ptee.compileSdk=37 -Ptee.buildToolsVersion=37.0.0 \
+  -Ptee.ndkVersion=30.0.16248370 :app:minifyReleaseWithR8
+```
+
+These optional properties retain upstream defaults when omitted. The command
+builds the dex in `app/build/intermediates/dex/release/minifyReleaseWithR8/`;
+it does not build or install the native module or replace any system toolchain.
+
 The two modes run in separate processes. The comparator requires exact DER
 equality, including package names, versions, digest deduplication and DER set
 ordering. Test with a package whose signing certificate has rotated: on the

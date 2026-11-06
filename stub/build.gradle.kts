@@ -5,8 +5,8 @@ plugins {
 
 android {
     namespace = "org.matrix.stub"
-    compileSdk = 36
-    buildToolsVersion = "36.0.0"
+    compileSdk = providers.gradleProperty("tee.compileSdk").map { it.toInt() }.getOrElse(36)
+    buildToolsVersion = providers.gradleProperty("tee.buildToolsVersion").getOrElse("36.0.0")
     defaultConfig { minSdk = 29 }
 
     buildTypes { release { isMinifyEnabled = false } }

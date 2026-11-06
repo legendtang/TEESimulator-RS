@@ -41,9 +41,9 @@ val verName = "v6.0.1"
 
 android {
     namespace = "org.matrix.TEESimulator"
-    compileSdk = 36
-    ndkVersion = "27.3.13750724"
-    buildToolsVersion = "36.0.0"
+    compileSdk = providers.gradleProperty("tee.compileSdk").map { it.toInt() }.getOrElse(36)
+    ndkVersion = providers.gradleProperty("tee.ndkVersion").getOrElse("27.3.13750724")
+    buildToolsVersion = providers.gradleProperty("tee.buildToolsVersion").getOrElse("36.0.0")
 
     defaultConfig {
         applicationId = "org.matrix.TEESimulator"
